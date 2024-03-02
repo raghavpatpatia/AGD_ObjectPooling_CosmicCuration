@@ -26,6 +26,13 @@ namespace CosmicCuration.Bullets
             }
             return CreateBullet();
         }
+
+        public void ReturnToBulletPool(BulletController returnedBullet)
+        {
+            PooledBullet pooledBullet = pooledBullets.Find(bullet => bullet.bulletController.Equals(returnedBullet));
+            pooledBullet.isUsed = false;
+        }
+
         private BulletController CreateBullet()
         {
             PooledBullet bullet = new PooledBullet();
