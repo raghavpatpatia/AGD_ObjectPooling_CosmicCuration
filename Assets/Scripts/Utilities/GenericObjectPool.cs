@@ -29,6 +29,11 @@ namespace CosmicCuration.Utilities
             return pooledItem.item;
         }
         protected virtual T CreateItem() => throw new NotImplementedException("Child class does not have implementation of CreateItem().");
+        public void ReturnItem(T item)
+        {
+            PooledItem<T> pooledItem = pooledItems.Find(item => item.item.Equals(item));
+            pooledItem.isUsed = false;
+        }
     }
     public class PooledItem<T> where T : class
     {
