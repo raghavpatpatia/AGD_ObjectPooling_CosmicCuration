@@ -1,15 +1,12 @@
-﻿using CosmicCuration.PowerUps;
-using CosmicCuration.Utilities;
+﻿using CosmicCuration.Utilities;
 
 namespace CosmicCuration.VFX
 {
     public class VFXPool : GenericObjectPool<VFXController>
     {
         private VFXView vfxView;
-        public VFXController GetVFX<T>(VFXView vfxView) where T : VFXController
-        {
-            this.vfxView = vfxView;
-            return GetItem<T>();
-        }
+        public VFXPool(VFXView vfxView) => this.vfxView = vfxView;
+        public VFXController GetVFX() => GetItem<VFXController>();
+        protected override VFXController CreateItem<T>() => new VFXController(vfxView);
     }
 }
