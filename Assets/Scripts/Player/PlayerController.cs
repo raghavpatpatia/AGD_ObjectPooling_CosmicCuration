@@ -1,8 +1,8 @@
-using System.Threading.Tasks;
 using UnityEngine;
 using CosmicCuration.Bullets;
 using CosmicCuration.Audio;
 using CosmicCuration.VFX;
+using System.Collections;
 
 namespace CosmicCuration.Player
 {
@@ -18,6 +18,7 @@ namespace CosmicCuration.Player
         private ShieldState currentShieldState;
         private int currentHealth;
         private float currentRateOfFire;
+        private Coroutine FireBullets;
 
         public PlayerController(PlayerView playerViewPrefab, PlayerScriptableObject playerScriptableObject, BulletPool bulletPool)
         {
@@ -71,13 +72,19 @@ namespace CosmicCuration.Player
         private void HandleShooting()
         {
             if (Input.GetKeyDown(KeyCode.Space))
-                FireWeapon();
+            {
+                if (FireBullets != null)
+                {
+                    playerView.StopCoroutine(FireBullets);
+                }
+                FireBullets = playerView.StartCoroutine(FireWeapon());
+            }
             if (Input.GetKeyUp(KeyCode.Space))
                 currentShootingState = ShootingState.NotFiring;
         }
 
         // Firing Weapons:
-        private async void FireWeapon()
+        private IEnumerator FireWeapon()
         {
             currentShootingState = ShootingState.Firing;
             while (currentShootingState == ShootingState.Firing)
@@ -92,7 +99,7 @@ namespace CosmicCuration.Player
                         FireBulletAtPosition(playerView.turretTransform2);
                         break;
                 }
-                await Task.Delay(Mathf.RoundToInt(currentRateOfFire * 1000));
+                yield return new WaitForSeconds(currentRateOfFire);
             }
         }
 
@@ -119,10 +126,12 @@ namespace CosmicCuration.Player
             }
 
             if (currentHealth <= 0)
+            {
                 PlayerDeath();
+            }
         }
 
-        private async void PlayerDeath()
+        private void PlayerDeath()
         {
             Object.Destroy(playerView.gameObject);
 
@@ -133,10 +142,14 @@ namespace CosmicCuration.Player
             GameService.Instance.GetEnemyService().SetEnemySpawning(false);
             GameService.Instance.GetPowerUpService().SetPowerUpSpawning(false);
 
-            // Wait for Player Ship Destruction.
-            await Task.Delay(playerScriptableObject.deathDelay * 1000);
+            float remainingDeathTime = playerScriptableObject.deathDelay;
+            while (remainingDeathTime > 0f)
+            {
+                remainingDeathTime -= Time.deltaTime;
+            }
             GameService.Instance.GetUIService().EnableGameOverUI();
         }
+
 
         public Vector3 GetPlayerPosition() => playerView != null ? playerView.transform.position : default;
 
